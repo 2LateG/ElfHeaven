@@ -1,141 +1,247 @@
+-- [[ ELFHEAVEN UILIB V1.1 ]] --
+
 local ElfHeavenLib = {}
 local UIS = game:GetService("UserInputService")
 local TS = game:GetService("TweenService")
 local RS = game:GetService("RunService")
 local LP = game:GetService("Players").LocalPlayer
 
--- --- UTILS & BYPASSES ---
--- Simple anti-cheat bypass for common property checks
-local function ProtectGUI(gui)
-    if syn and syn.protect_gui then syn.protect_gui(gui) end
-    gui.Name = game:GetService("HttpService"):GenerateGUID(false)
+-- --- CORE UTILS & ANIMATIONS ---
+local Animations = {}
+
+function Animations:PopUI(obj)
+    obj.Size = UDim2.new(0, 0, 0, 0)
+    obj.ClipsDescendants = true
+    local tween = TS:Create(obj, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+        Size = UDim2.new(0, 520, 0, 360)
+    })
+    tween:Play()
 end
 
+local function Ripple(obj)
+    obj.ClipsDescendants = true
+    local Circle = Instance.new("ImageLabel")
+    Circle.Parent = obj
+    Circle.BackgroundTransparency = 1
+    Circle.Image = "rbxassetid://139691201029835"
+    Circle.ImageTransparency = 0.6
+    Circle.ZIndex = 15
+    
+    local m = UIS:GetMouseLocation()
+    Circle.Position = UDim2.new(0, m.X - obj.AbsolutePosition.X, 0, (m.Y - 36) - obj.AbsolutePosition.Y)
+    
+    Circle:TweenSizeAndPosition(
+        UDim2.new(0, 450, 0, 450), 
+        UDim2.new(0.5, -225, 0.5, -225), 
+        "Out", "Quart", 0.6, true
+    )
+    
+    TS:Create(Circle, TweenInfo.new(0.6), {ImageTransparency = 1}):Play()
+    task.delay(0.6, function() Circle:Destroy() end)
+end
+
+-- --- LIBRARY MAIN ---
 function ElfHeavenLib:CreateWindow(Config)
-    local Title = Config.Title or "ELFHEAVEN.GG"
+    local Title = Config.Title or "ELFHEAVEN V10"
     local Accent = Config.Accent or Color3.fromRGB(200, 0, 45)
-    local ToggleKey = Config.Key or Enum.KeyCode.Insert
+    local Key = Config.Key or Enum.KeyCode.Insert
 
     local Gui = Instance.new("ScreenGui", LP.PlayerGui)
-    ProtectGUI(Gui)
+    Gui.ResetOnSpawn = false
+    Gui.Name = "Elf_" .. math.random(100, 999)
 
-    -- --- INDICATOR (BOTTOM LEFT) ---
-    local Indicator = Instance.new("Frame", Gui)
-    Indicator.Size = UDim2.new(0, 180, 0, 30); Indicator.Position = UDim2.new(0, 10, 1, -40)
-    Indicator.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Indicator.BorderSizePixel = 0
-    Instance.new("UICorner", Indicator).CornerRadius = UDim.new(0, 4)
-    local IndStroke = Instance.new("UIStroke", Indicator); IndStroke.Color = Accent; IndStroke.Thickness = 1
-    
-    local IndText = Instance.new("TextLabel", Indicator)
-    IndText.Size = UDim2.new(1, 0, 1, 0); IndText.Text = "SYSTEM: STANDBY"; IndText.TextColor3 = Color3.new(1,1,1)
-    IndText.Font = Enum.Font.Code; IndText.TextSize = 11; IndText.BackgroundTransparency = 1
-
-    -- --- MOBILE TOGGLE BUTTON ---
-    local MobileBtn = Instance.new("TextButton", Gui)
-    MobileBtn.Size = UDim2.new(0, 45, 0, 45); MobileBtn.Position = UDim2.new(0, 10, 0.5, -22)
-    MobileBtn.BackgroundColor3 = Accent; MobileBtn.Text = "E"; MobileBtn.TextColor3 = Color3.new(1,1,1)
-    Instance.new("UICorner", MobileBtn).CornerRadius = UDim.new(1, 0)
-    Instance.new("UIStroke", MobileBtn).Thickness = 2
-
-    -- --- MAIN FRAME ---
     local Main = Instance.new("Frame", Gui)
-    Main.Size = UDim2.new(0, 550, 0, 380); Main.Position = UDim2.new(0.5, -275, 0.5, -190)
-    Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12); Main.BorderSizePixel = 0
-    Instance.new("UICorner", Main)
+    Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+    Main.BorderSizePixel = 0
+    Main.Position = UDim2.new(0.5, -260, 0.5, -180)
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 4)
+    local Stroke = Instance.new("UIStroke", Main)
+    Stroke.Color = Color3.fromRGB(35, 35, 35)
+    Stroke.Thickness = 1
 
+    -- Start Open Animation
+    Animations:PopUI(Main)
+
+    -- TOPBAR
+    local TopBar = Instance.new("Frame", Main)
+    TopBar.Size = UDim2.new(1, 0, 0, 30)
+    TopBar.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+    TopBar.BorderSizePixel = 0
+    Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 4)
+
+    local TitleLbl = Instance.new("TextLabel", TopBar)
+    TitleLbl.Text = "  " .. Title
+    TitleLbl.Size = UDim2.new(1, 0, 1, 0)
+    TitleLbl.TextColor3 = Color3.new(1, 1, 1)
+    TitleLbl.Font = Enum.Font.Code
+    TitleLbl.TextSize = 13
+    TitleLbl.TextXAlignment = "Left"
+    TitleLbl.BackgroundTransparency = 1
+
+    -- SIDEBAR
     local Sidebar = Instance.new("Frame", Main)
-    Sidebar.Size = UDim2.new(0, 60, 1, 0); Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Sidebar.BorderSizePixel = 0
-    local SideLayout = Instance.new("UIListLayout", Sidebar); SideLayout.Padding = UDim.new(0, 10); SideLayout.HorizontalAlignment = "Center"
-    Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 15)
+    Sidebar.Size = UDim2.new(0, 50, 1, -30)
+    Sidebar.Position = UDim2.new(0, 0, 0, 30)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    Sidebar.BorderSizePixel = 0
+    local SideLayout = Instance.new("UIListLayout", Sidebar)
+    SideLayout.HorizontalAlignment = "Center"
+    SideLayout.Padding = UDim.new(0, 8)
+    Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 10)
 
     local Container = Instance.new("Frame", Main)
-    Container.Size = UDim2.new(1, -75, 1, -20); Container.Position = UDim2.new(0, 70, 0, 10); Container.BackgroundTransparency = 1
-
-    -- Toggle Logic (Key & Button)
-    local function ToggleUI()
-        Main.Visible = not Main.Visible
-        TS:Create(MobileBtn, TweenInfo.new(0.3), {BackgroundTransparency = Main.Visible and 0 or 0.5}):Play()
-    end
-    MobileBtn.MouseButton1Click:Connect(ToggleUI)
-    UIS.InputBegan:Connect(function(i, p) if not p and i.KeyCode == ToggleKey then ToggleUI() end end)
+    Container.Size = UDim2.new(1, -60, 1, -40)
+    Container.Position = UDim2.new(0, 55, 0, 35)
+    Container.BackgroundTransparency = 1
 
     local Tabs = { Active = nil }
-    function Tabs:CreateTab(Icon, Name)
+    
+    function Tabs:CreateTab(Icon)
         local TBtn = Instance.new("TextButton", Sidebar)
-        TBtn.Size = UDim2.new(0, 35, 0, 35); TBtn.Text = Icon; TBtn.TextSize = 18; TBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        TBtn.Size = UDim2.new(0, 35, 0, 35)
+        TBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+        TBtn.Text = Icon
+        TBtn.TextColor3 = Color3.new(0.6, 0.6, 0.6)
+        TBtn.TextSize = 18
         Instance.new("UICorner", TBtn)
-
+        
         local Page = Instance.new("ScrollingFrame", Container)
-        Page.Size = UDim2.new(1, 0, 1, 0); Page.Visible = false; Page.BackgroundTransparency = 1; Page.AutomaticCanvasSize = "Y"; Page.ScrollBarThickness = 0
-        Instance.new("UIListLayout", Page).Padding = UDim.new(0, 15)
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.Visible = false
+        Page.BackgroundTransparency = 1
+        Page.ScrollBarThickness = 0
+        Page.AutomaticCanvasSize = "Y"
+        Instance.new("UIListLayout", Page).Padding = UDim.new(0, 10)
 
-        if not Tabs.Active then Tabs.Active = Page; Page.Visible = true; TBtn.TextColor3 = Accent end
+        if not Tabs.Active then 
+            Tabs.Active = Page
+            Page.Visible = true 
+            TBtn.TextColor3 = Accent
+        end
 
         TBtn.MouseButton1Click:Connect(function()
             for _, v in pairs(Container:GetChildren()) do v.Visible = false end
-            for _, v in pairs(Sidebar:GetChildren()) do if v:IsA("TextButton") then v.TextColor3 = Color3.new(1,1,1) end end
-            Page.Visible = true; TBtn.TextColor3 = Accent
+            for _, v in pairs(Sidebar:GetChildren()) do 
+                if v:IsA("TextButton") then v.TextColor3 = Color3.new(0.6, 0.6, 0.6) end 
+            end
+            Page.Visible = true
+            TBtn.TextColor3 = Accent
+            Ripple(TBtn)
         end)
 
         local Sections = {}
+        
         function Sections:CreateSection(SName)
-            local Sect = Instance.new("Frame", Page)
-            Sect.Size = UDim2.new(1, -5, 0, 30); Sect.BackgroundColor3 = Color3.fromRGB(18, 18, 18); Sect.BorderSizePixel = 0
-            Instance.new("UICorner", Sect)
-            local SLay = Instance.new("UIListLayout", Sect); SLay.Padding = UDim.new(0, 8)
-            Instance.new("UIPadding", Sect).PaddingTop = UDim.new(0, 10); Instance.new("UIPadding", Sect).PaddingLeft = UDim.new(0, 10)
+            local SectFrame = Instance.new("Frame", Page)
+            SectFrame.Size = UDim2.new(1, -5, 0, 30)
+            SectFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+            Instance.new("UICorner", SectFrame)
+            local SLay = Instance.new("UIListLayout", SectFrame)
+            SLay.Padding = UDim.new(0, 6)
+            Instance.new("UIPadding", SectFrame).PaddingLeft = UDim.new(0, 10)
+            Instance.new("UIPadding", SectFrame).PaddingTop = UDim.new(0, 10)
+            Instance.new("UIPadding", SectFrame).PaddingBottom = UDim.new(0, 10)
+
+            local SLbl = Instance.new("TextLabel", SectFrame)
+            SLbl.Text = SName:upper()
+            SLbl.Size = UDim2.new(1, 0, 0, 15)
+            SLbl.Font = Enum.Font.Code
+            SLbl.TextSize = 11
+            SLbl.TextColor3 = Accent
+            SLbl.BackgroundTransparency = 1
+            SLbl.TextXAlignment = "Left"
 
             local Elements = {}
-            -- --- CHECKBOX WITH X ---
-            function Elements:AddCheckbox(Text, Default, Callback)
-                local Btn = Instance.new("TextButton", Sect)
-                Btn.Size = UDim2.new(1, 0, 0, 20); Btn.BackgroundTransparency = 1; Btn.Text = ""
-                
-                local Box = Instance.new("Frame", Btn)
-                Box.Size = UDim2.new(0, 16, 0, 16); Box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-                local X = Instance.new("TextLabel", Box)
-                X.Size = UDim2.new(1, 0, 1, 0); X.Text = "X"; X.TextColor3 = Accent; X.TextSize = 14; X.BackgroundTransparency = 1; X.Visible = Default
-                
-                local Lbl = Instance.new("TextLabel", Btn)
-                Lbl.Text = Text; Lbl.Position = UDim2.new(0, 25, 0, 0); Lbl.TextColor3 = Color3.new(0.8,0.8,0.8); Lbl.Font = Enum.Font.Code; Lbl.TextXAlignment = "Left"; Lbl.BackgroundTransparency = 1
 
-                local state = Default
-                Btn.MouseButton1Click:Connect(function()
-                    state = not state
-                    X.Visible = state
-                    Callback(state)
-                    IndText.Text = "UPDATED: " .. Text:upper()
+            -- CHECKBOX [X]
+            function Elements:AddCheckbox(Text, Default, Callback)
+                local CBtn = Instance.new("TextButton", SectFrame)
+                CBtn.Size = UDim2.new(1, 0, 0, 22)
+                CBtn.BackgroundTransparency = 1
+                CBtn.Text = ""
+                
+                local Box = Instance.new("Frame", CBtn)
+                Box.Size = UDim2.new(0, 16, 0, 16)
+                Box.Position = UDim2.new(0, 0, 0.5, -8)
+                Box.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+                local X = Instance.new("TextLabel", Box)
+                X.Text = "X"; X.Size = UDim2.new(1, 0, 1, 0)
+                X.Visible = Default; X.TextColor3 = Accent; X.Font = Enum.Font.Code; X.BackgroundTransparency = 1
+                
+                local Lbl = Instance.new("TextLabel", CBtn)
+                Lbl.Text = Text; Lbl.Position = UDim2.new(0, 25, 0, 0); Lbl.Size = UDim2.new(1, -30, 1, 0)
+                Lbl.TextColor3 = Color3.new(0.8, 0.8, 0.8); Lbl.Font = Enum.Font.Code; Lbl.TextXAlignment = "Left"; Lbl.BackgroundTransparency = 1
+                
+                CBtn.MouseButton1Click:Connect(function()
+                    Default = not Default
+                    X.Visible = Default
+                    Callback(Default)
+                    Ripple(CBtn)
                 end)
-                Sect.Size = UDim2.new(1, -5, 0, SLay.AbsoluteContentSize.Y + 15)
+                SectFrame.Size = UDim2.new(1, -5, 0, SLay.AbsoluteContentSize.Y + 15)
             end
 
-            -- --- DROPDOWN BOX ---
+            -- SLIDER
+            function Elements:AddSlider(Text, Min, Max, Default, Callback)
+                local SFrame = Instance.new("Frame", SectFrame)
+                SFrame.Size = UDim2.new(1, -10, 0, 35)
+                SFrame.BackgroundTransparency = 1
+                local SLbl = Instance.new("TextLabel", SFrame)
+                SLbl.Text = Text .. ": " .. Default
+                SLbl.Size = UDim2.new(1, 0, 0, 15); SLbl.TextColor3 = Color3.new(0.8, 0.8, 0.8); SLbl.Font = Enum.Font.Code; SLbl.TextXAlignment = "Left"; SLbl.BackgroundTransparency = 1
+                local Bar = Instance.new("Frame", SFrame); Bar.Size = UDim2.new(1, 0, 0, 4); Bar.Position = UDim2.new(0, 0, 0, 22); Bar.BackgroundColor3 = Color3.fromRGB(45, 45, 45); Bar.BorderSizePixel = 0
+                local Fill = Instance.new("Frame", Bar); Fill.Size = UDim2.new((Default-Min)/(Max-Min), 0, 1, 0); Fill.BackgroundColor3 = Accent; Fill.BorderSizePixel = 0
+                
+                local function Update()
+                    local P = math.clamp((UIS:GetMouseLocation().X - Bar.AbsolutePosition.X) / Bar.AbsoluteSize.X, 0, 1)
+                    local V = math.floor(Min + (Max - Min) * P)
+                    Fill.Size = UDim2.new(P, 0, 1, 0); SLbl.Text = Text .. ": " .. V; Callback(V)
+                end
+                Bar.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then local c; c = RS.RenderStepped:Connect(Update) UIS.InputEnded:Connect(function(e) if e.UserInputType == Enum.UserInputType.MouseButton1 or e.UserInputType == Enum.UserInputType.Touch then c:Disconnect() end end) end end)
+                SectFrame.Size = UDim2.new(1, -5, 0, SLay.AbsoluteContentSize.Y + 15)
+            end
+
+            -- DROPDOWN / COLOR PICKER
             function Elements:AddDropdown(Text, List, Callback)
-                local Drop = Instance.new("TextButton", Sect)
-                Drop.Size = UDim2.new(1, -20, 0, 25); Drop.BackgroundColor3 = Color3.fromRGB(25, 25, 25); Drop.Text = "  " .. Text .. " [V]"; Drop.TextColor3 = Color3.new(1,1,1); Drop.Font = Enum.Font.Code; Drop.TextXAlignment = "Left"
+                local Drop = Instance.new("TextButton", SectFrame)
+                Drop.Size = UDim2.new(1, -10, 0, 25); Drop.BackgroundColor3 = Color3.fromRGB(30, 30, 30); Drop.Text = "  " .. Text; Drop.TextColor3 = Color3.new(1, 1, 1); Drop.Font = Enum.Font.Code; Drop.TextXAlignment = "Left"
+                Instance.new("UICorner", Drop).CornerRadius = UDim.new(0, 4)
                 
                 local Content = Instance.new("Frame", Page)
-                Content.Size = UDim2.new(1, -20, 0, #List * 20); Content.Visible = false; Content.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+                Content.Size = UDim2.new(1, -10, 0, #List * 22); Content.Visible = false; Content.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
                 Instance.new("UIListLayout", Content)
+                Instance.new("UICorner", Content)
 
                 for _, v in pairs(List) do
                     local Opt = Instance.new("TextButton", Content)
-                    Opt.Size = UDim2.new(1, 0, 0, 20); Opt.Text = v; Opt.BackgroundColor3 = Color3.fromRGB(30,30,30); Opt.TextColor3 = Color3.new(0.7,0.7,0.7)
+                    Opt.Size = UDim2.new(1, 0, 0, 22); Opt.Text = v; Opt.BackgroundColor3 = Color3.fromRGB(35, 35, 35); Opt.TextColor3 = Color3.new(0.7, 0.7, 0.7); Opt.Font = Enum.Font.Code
                     Opt.MouseButton1Click:Connect(function()
                         Drop.Text = "  " .. Text .. ": " .. v
                         Content.Visible = false
                         Callback(v)
+                        Ripple(Opt)
                     end)
                 end
 
-                Drop.MouseButton1Click:Connect(function() Content.Visible = not Content.Visible end)
-                Sect.Size = UDim2.new(1, -5, 0, SLay.AbsoluteContentSize.Y + 15)
+                Drop.MouseButton1Click:Connect(function() 
+                    Content.Visible = not Content.Visible 
+                    Ripple(Drop)
+                end)
+                SectFrame.Size = UDim2.new(1, -5, 0, SLay.AbsoluteContentSize.Y + 15)
             end
 
             return Elements
         end
         return Sections
     end
+
+    -- TOGGLE KEY LOGIC
+    UIS.InputBegan:Connect(function(i, p) 
+        if not p and i.KeyCode == Key then 
+            Main.Visible = not Main.Visible 
+        end 
+    end)
+
     return Tabs
 end
 
