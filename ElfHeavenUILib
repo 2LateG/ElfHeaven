@@ -1,162 +1,164 @@
--- [[ ELFHEAVEN.GG LIBRARY ]] --
-
 local ElfHeavenLib = {}
-
 local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
+local TS = game:GetService("TweenService")
+local RS = game:GetService("RunService")
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local LP = Players.LocalPlayer
 
-function ElfHeavenLib:CreateWindow(title)
-    local Gui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
-    Gui.Name = "ElfHeaven_Lib"; Gui.ResetOnSpawn = false; Gui.DisplayOrder = 9e8
+local function Ripple(obj)
+    spawn(function()
+        local Mouse = LP:GetMouse()
+        local Circle = Instance.new("ImageLabel")
+        Circle.Parent = obj
+        Circle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Circle.BackgroundTransparency = 1
+        Circle.Image = "rbxassetid://2760869611"
+        Circle.ImageColor3 = Color3.fromRGB(255, 255, 255)
+        Circle.ImageTransparency = 0.8
+        Circle.ZIndex = 10
+        local Size = obj.AbsoluteSize.X > obj.AbsoluteSize.Y and obj.AbsoluteSize.X or obj.AbsoluteSize.Y
+        Circle.Position = UDim2.new(0, Mouse.X - obj.AbsolutePosition.X, 0, Mouse.Y - obj.AbsolutePosition.Y)
+        Circle:TweenSizeAndPosition(UDim2.new(0, Size * 2, 0, Size * 2), UDim2.new(0.5, -Size, 0.5, -Size), "Out", "Quad", 0.5, false)
+        for i = 1, 10 do
+            Circle.ImageTransparency = 0.8 + (i * 0.02)
+            task.wait(0.05)
+        end
+        Circle:Destroy()
+    end)
+end
+
+function ElfHeavenLib:CreateWindow(Config)
+    Config = Config or {}
+    local Title = Config.Title or "ELFHEAVEN.GG"
+    local AccentColor = Config.Accent or Color3.fromRGB(200, 0, 40)
+    
+    local Gui = Instance.new("ScreenGui", LP.PlayerGui)
+    Gui.Name = "ElfHeaven_V5"; Gui.ResetOnSpawn = false; Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     local Main = Instance.new("Frame", Gui)
-    Main.Size = UDim2.new(0, 560, 0, 420); Main.Position = UDim2.new(0.5, -280, 0.5, -210)
-    Main.BackgroundColor3 = Color3.fromRGB(12, 12, 12); Main.BorderSizePixel = 0
-    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 4)
+    Main.Size = UDim2.new(0, 580, 0, 400); Main.Position = UDim2.new(0.5, -290, 0.5, -200)
+    Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Main.BorderSizePixel = 0
+    Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 6)
+
+    local TopBar = Instance.new("Frame", Main)
+    TopBar.Size = UDim2.new(1, 0, 0, 35); TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20); TopBar.BorderSizePixel = 0
+    local TopCorner = Instance.new("UICorner", TopBar); TopCorner.CornerRadius = UDim.new(0, 6)
     
-    -- Accent Top Line (Crimson)
-    local Accent = Instance.new("Frame", Main)
-    Accent.Size = UDim2.new(1, 0, 0, 2); Accent.BackgroundColor3 = Color3.fromRGB(200, 0, 40); Accent.BorderSizePixel = 0
+    local AccentLine = Instance.new("Frame", TopBar)
+    AccentLine.Size = UDim2.new(1, 0, 0, 2); AccentLine.Position = UDim2.new(0, 0, 1, -2); AccentLine.BackgroundColor3 = AccentColor; AccentLine.BorderSizePixel = 0
 
-    -- Sidebar Container
+    local TitleLbl = Instance.new("TextLabel", TopBar)
+    TitleLbl.Text = "  " .. Title; TitleLbl.Size = UDim2.new(1, 0, 1, 0); TitleLbl.BackgroundTransparency = 1
+    TitleLbl.TextColor3 = Color3.fromRGB(220, 220, 220); TitleLbl.Font = Enum.Font.Code; TitleLbl.TextSize = 14; TitleLbl.TextXAlignment = "Left"
+
     local Sidebar = Instance.new("Frame", Main)
-    Sidebar.Size = UDim2.new(0, 60, 1, -2); Sidebar.Position = UDim2.new(0, 0, 0, 2)
-    Sidebar.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Sidebar.BorderSizePixel = 0
-    local SidebarLayout = Instance.new("UIListLayout", Sidebar)
-    SidebarLayout.Padding = UDim.new(0, 10); SidebarLayout.HorizontalAlignment = "Center"
-    Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 15)
+    Sidebar.Size = UDim2.new(0, 55, 1, -35); Sidebar.Position = UDim2.new(0, 0, 0, 35)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(12, 12, 12); Sidebar.BorderSizePixel = 0
+    local SideLayout = Instance.new("UIListLayout", Sidebar); SideLayout.Padding = UDim.new(0, 8); SideLayout.HorizontalAlignment = "Center"
+    Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 10)
 
-    -- Content Area
     local Container = Instance.new("Frame", Main)
-    Container.Size = UDim2.new(1, -75, 1, -35); Container.Position = UDim2.new(0, 70, 0, 30)
-    Container.BackgroundTransparency = 1
+    Container.Size = UDim2.new(1, -65, 1, -45); Container.Position = UDim2.new(0, 60, 0, 40); Container.BackgroundTransparency = 1
 
-    -- Watermark
-    local WM = Instance.new("TextLabel", Main)
-    WM.Text = " " .. title .. " | build: v1.0.0 | " .. os.date("%X"); WM.Size = UDim2.new(0, 200, 0, 20)
-    WM.Position = UDim2.new(0, 70, 0, 5); WM.TextColor3 = Color3.fromRGB(150, 150, 150)
-    WM.Font = Enum.Font.Code; WM.TextSize = 10; WM.BackgroundTransparency = 1; WM.TextXAlignment = "Left"
-
-    -- Logic for Dragging
     local dragging, dragInput, dragStart, startPos
-    Main.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+    local function update(input)
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true; dragStart = input.Position; startPos = Main.Position
+            input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
         end
     end)
-    UIS.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
     end)
-    UIS.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
-    end)
+    UIS.InputChanged:Connect(function(input) if input == dragInput and dragging then update(input) end end)
 
-    -- Toggle with INSERT
-    UIS.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.KeyCode == Enum.KeyCode.Insert then
-            Main.Visible = not Main.Visible
-        end
-    end)
-
-    local Tabs = {}
-    local FirstTab = true
-
-    function Tabs:CreateTab(iconId, tabName)
-        local TabBtn = Instance.new("ImageButton", Sidebar)
-        TabBtn.Size = UDim2.new(0, 30, 0, 30); TabBtn.BackgroundTransparency = 1
-        TabBtn.Image = "rbxassetid://" .. iconId; TabBtn.ImageColor3 = Color3.fromRGB(100, 100, 100)
+    local Tabs = { Active = nil }
+    function Tabs:CreateTab(IconID, Name)
+        local TabBtn = Instance.new("TextButton", Sidebar)
+        TabBtn.Size = UDim2.new(0, 40, 0, 40); TabBtn.BackgroundColor3 = Color3.fromRGB(20, 20, 20); TabBtn.Text = ""
+        Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 6)
         
-        local TabFrame = Instance.new("ScrollingFrame", Container)
-        TabFrame.Size = UDim2.new(1, 0, 1, 0); TabFrame.BackgroundTransparency = 1
-        TabFrame.Visible = FirstTab; TabFrame.ScrollBarThickness = 2
-        TabFrame.CanvasSize = UDim2.new(0,0,2,0); TabFrame.ScrollBarImageColor3 = Color3.fromRGB(200, 0, 40)
-        local TabList = Instance.new("UIListLayout", TabFrame); TabList.Padding = UDim.new(0, 15)
+        local Icon = Instance.new("ImageLabel", TabBtn)
+        Icon.Size = UDim2.new(0, 24, 0, 24); Icon.Position = UDim2.new(0.5, -12, 0.5, -12); Icon.BackgroundTransparency = 1
+        Icon.Image = (IconID == "" or not IconID) and "rbxassetid://6034287525" or "rbxassetid://" .. IconID
+        Icon.ImageColor3 = Color3.fromRGB(150, 150, 150)
 
-        if FirstTab then TabBtn.ImageColor3 = Color3.fromRGB(200, 0, 40); FirstTab = false end
+        local TabPage = Instance.new("ScrollingFrame", Container)
+        TabPage.Size = UDim2.new(1, 0, 1, 0); TabPage.Visible = false; TabPage.BackgroundTransparency = 1
+        TabPage.ScrollBarThickness = 2; TabPage.CanvasSize = UDim2.new(0, 0, 0, 0); TabPage.AutomaticCanvasSize = "Y"
+        Instance.new("UIListLayout", TabPage).Padding = UDim.new(0, 10)
+
+        if not Tabs.Active then
+            Tabs.Active = TabPage
+            TabPage.Visible = true
+            Icon.ImageColor3 = AccentColor
+        end
 
         TabBtn.MouseButton1Click:Connect(function()
-            for _, v in pairs(Container:GetChildren()) do if v:IsA("ScrollingFrame") then v.Visible = false end end
-            for _, v in pairs(Sidebar:GetChildren()) do if v:IsA("ImageButton") then v.ImageColor3 = Color3.fromRGB(100, 100, 100) end end
-            TabFrame.Visible = true; TabBtn.ImageColor3 = Color3.fromRGB(200, 0, 40)
+            for _, v in pairs(Container:GetChildren()) do v.Visible = false end
+            for _, v in pairs(Sidebar:GetChildren()) do if v:IsA("TextButton") then v.ImageLabel.ImageColor3 = Color3.fromRGB(150, 150, 150) end end
+            TabPage.Visible = true
+            Icon.ImageColor3 = AccentColor
+            Ripple(TabBtn)
         end)
 
         local Sections = {}
-
-        function Sections:CreateSection(sectionName)
-            local SectionFrame = Instance.new("Frame", TabFrame)
-            SectionFrame.Size = UDim2.new(1, -10, 0, 30); SectionFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-            SectionFrame.BorderSizePixel = 0; Instance.new("UICorner", SectionFrame)
-            local SStroke = Instance.new("UIStroke", SectionFrame); SStroke.Color = Color3.fromRGB(30, 30, 30)
-
-            local SLabel = Instance.new("TextLabel", SectionFrame)
-            SLabel.Text = " " .. sectionName:upper(); SLabel.Position = UDim2.new(0, 10, 0, -8)
-            SLabel.Size = UDim2.new(0, 0, 0, 16); SLabel.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-            SLabel.TextColor3 = Color3.fromRGB(200, 200, 200); SLabel.Font = Enum.Font.Code; SLabel.TextSize = 10; SLabel.AutomaticSize = "X"
-
-            local ItemList = Instance.new("Frame", SectionFrame)
-            ItemList.Size = UDim2.new(1, -20, 1, -20); ItemList.Position = UDim2.new(0, 10, 0, 12); ItemList.BackgroundTransparency = 1
-            local L = Instance.new("UIListLayout", ItemList); L.Padding = UDim.new(0, 5)
+        function Sections:CreateSection(SName)
+            local SectionFrame = Instance.new("Frame", TabPage)
+            SectionFrame.Size = UDim2.new(1, -5, 0, 30); SectionFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20); SectionFrame.BorderSizePixel = 0
+            Instance.new("UICorner", SectionFrame).CornerRadius = UDim.new(0, 4)
+            local SLayout = Instance.new("UIListLayout", SectionFrame); SLayout.Padding = UDim.new(0, 6)
+            Instance.new("UIPadding", SectionFrame).PaddingLeft = UDim.new(0, 10)
+            Instance.new("UIPadding", SectionFrame).PaddingTop = UDim.new(0, 25)
+            
+            local SLbl = Instance.new("TextLabel", SectionFrame)
+            SLbl.Text = SName:upper(); SLbl.Position = UDim2.new(0, 0, 0, -20); SLbl.Size = UDim2.new(1, 0, 0, 20)
+            SLbl.Font = Enum.Font.Code; SLbl.TextSize = 11; SLbl.TextColor3 = AccentColor; SLbl.BackgroundTransparency = 1; SLbl.TextXAlignment = "Left"
 
             local Elements = {}
-
-            function Elements:AddToggle(text, callback)
-                local T = Instance.new("TextButton", ItemList)
-                T.Size = UDim2.new(1, 0, 0, 20); T.BackgroundTransparency = 1; T.Text = ""
+            function Elements:AddToggle(Text, Default, Callback)
+                local TBtn = Instance.new("TextButton", SectionFrame)
+                TBtn.Size = UDim2.new(1, -10, 0, 25); TBtn.BackgroundTransparency = 1; TBtn.Text = ""
+                local Box = Instance.new("Frame", TBtn)
+                Box.Size = UDim2.new(0, 14, 0, 14); Box.Position = UDim2.new(0, 0, 0.5, -7); Box.BackgroundColor3 = Default and AccentColor or Color3.fromRGB(40, 40, 40); Box.BorderSizePixel = 0
+                local TLbl = Instance.new("TextLabel", TBtn)
+                TLbl.Text = Text; TLbl.Size = UDim2.new(1, -20, 1, 0); TLbl.Position = UDim2.new(0, 20, 0, 0); TLbl.TextColor3 = Color3.fromRGB(200, 200, 200)
+                TLbl.Font = Enum.Font.Code; TLbl.TextSize = 12; TLbl.TextXAlignment = "Left"; TLbl.BackgroundTransparency = 1
                 
-                local Box = Instance.new("Frame", T)
-                Box.Size = UDim2.new(0, 12, 0, 12); Box.Position = UDim2.new(0, 0, 0.5, -6)
-                Box.BackgroundColor3 = Color3.fromRGB(35, 35, 35); Box.BorderSizePixel = 0
-                
-                local Lbl = Instance.new("TextLabel", T)
-                Lbl.Text = text; Lbl.Position = UDim2.new(0, 20, 0, 0); Lbl.Size = UDim2.new(1, -20, 1, 0)
-                Lbl.TextColor3 = Color3.fromRGB(150, 150, 150); Lbl.Font = Enum.Font.Code; Lbl.TextSize = 11; Lbl.TextXAlignment = "Left"; Lbl.BackgroundTransparency = 1
-                
-                local active = false
-                T.MouseButton1Click:Connect(function()
-                    active = not active
-                    Box.BackgroundColor3 = active and Color3.fromRGB(200, 0, 40) or Color3.fromRGB(35, 35, 35)
-                    Lbl.TextColor3 = active and Color3.new(1,1,1) or Color3.fromRGB(150, 150, 150)
-                    callback(active)
+                local Enabled = Default
+                TBtn.MouseButton1Click:Connect(function()
+                    Enabled = not Enabled
+                    Box.BackgroundColor3 = Enabled and AccentColor or Color3.fromRGB(40, 40, 40)
+                    Callback(Enabled)
                 end)
-                SectionFrame.Size = UDim2.new(1, -10, 0, L.AbsoluteContentSize.Y + 30)
+                SectionFrame.Size = UDim2.new(1, -5, 0, SLayout.AbsoluteContentSize.Y + 10)
             end
 
-            function Elements:AddSlider(text, min, max, default, callback)
-                local S = Instance.new("Frame", ItemList)
-                S.Size = UDim2.new(1, 0, 0, 30); S.BackgroundTransparency = 1
-                
-                local SLbl = Instance.new("TextLabel", S)
-                SLbl.Text = text .. ": " .. default; SLbl.Size = UDim2.new(1, 0, 0, 15); SLbl.TextColor3 = Color3.fromRGB(150, 150, 150)
-                SLbl.Font = Enum.Font.Code; SLbl.TextSize = 10; SLbl.TextXAlignment = "Left"; SLbl.BackgroundTransparency = 1
-                
-                local SBar = Instance.new("Frame", S)
-                SBar.Size = UDim2.new(1, 0, 0, 4); SBar.Position = UDim2.new(0, 0, 0, 20); SBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35); SBar.BorderSizePixel = 0
-                
-                local SFill = Instance.new("Frame", SBar)
-                SFill.Size = UDim2.new((default-min)/(max-min), 0, 1, 0); SFill.BackgroundColor3 = Color3.fromRGB(200, 0, 40); SFill.BorderSizePixel = 0
+            function Elements:AddSlider(Text, Min, Max, Default, Callback)
+                local SFrame = Instance.new("Frame", SectionFrame)
+                SFrame.Size = UDim2.new(1, -10, 0, 35); SFrame.BackgroundTransparency = 1
+                local SLbl = Instance.new("TextLabel", SFrame)
+                SLbl.Text = Text .. ": " .. Default; SLbl.Size = UDim2.new(1, 0, 0, 15); SLbl.TextColor3 = Color3.fromRGB(200, 200, 200); SLbl.Font = Enum.Font.Code; SLbl.TextSize = 11; SLbl.BackgroundTransparency = 1; SLbl.TextXAlignment = "Left"
+                local SBack = Instance.new("Frame", SFrame)
+                SBack.Size = UDim2.new(1, 0, 0, 4); SBack.Position = UDim2.new(0, 0, 0, 20); SBack.BackgroundColor3 = Color3.fromRGB(40, 40, 40); SBack.BorderSizePixel = 0
+                local SFill = Instance.new("Frame", SBack)
+                SFill.Size = UDim2.new((Default-Min)/(Max-Min), 0, 1, 0); SFill.BackgroundColor3 = AccentColor; SFill.BorderSizePixel = 0
 
-                local function Update(input)
-                    local pos = math.clamp((input.Position.X - SBar.AbsolutePosition.X) / SBar.AbsoluteSize.X, 0, 1)
-                    local val = math.floor(min + (max - min) * pos)
-                    SFill.Size = UDim2.new(pos, 0, 1, 0); SLbl.Text = text .. ": " .. val; callback(val)
+                local function Move()
+                    local Pos = math.clamp((UIS:GetMouseLocation().X - SBack.AbsolutePosition.X) / SBack.AbsoluteSize.X, 0, 1)
+                    local Val = math.floor(Min + (Max - Min) * Pos)
+                    SFill.Size = UDim2.new(Pos, 0, 1, 0); SLbl.Text = Text .. ": " .. Val; Callback(Val)
                 end
-
-                SBar.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        local conn; conn = UIS.InputChanged:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseMovement then Update(i) end end)
-                        UIS.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then conn:Disconnect() end end)
-                        Update(input)
-                    end
-                end)
-                SectionFrame.Size = UDim2.new(1, -10, 0, L.AbsoluteContentSize.Y + 30)
+                SBack.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then
+                    local con; con = RS.RenderStepped:Connect(Move)
+                    UIS.InputEnded:Connect(function(e) if e.UserInputType == Enum.UserInputType.MouseButton1 or e.UserInputType == Enum.UserInputType.Touch then con:Disconnect() end end)
+                end end)
+                SectionFrame.Size = UDim2.new(1, -5, 0, SLayout.AbsoluteContentSize.Y + 10)
             end
-
             return Elements
         end
         return Sections
